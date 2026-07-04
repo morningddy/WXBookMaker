@@ -1,3 +1,6 @@
+<img width="2560" height="1229" alt="image" src="https://github.com/user-attachments/assets/5a065917-fb8a-4c44-ae50-8d77fd92b730" />
+
+
 # 📚 微信读书电子书制作工具 (WXBookMaker)
 
 [![GitHub stars](https://img.shields.io/github/stars/morningddy/WXBookMaker?style=social)](https://github.com/morningddy/WXBookMaker)
