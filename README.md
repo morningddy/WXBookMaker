@@ -1,6 +1,12 @@
-# 📚 微信读书电子书制作工具
+# 📚 微信读书电子书制作工具 (WXBookMaker)
+
+[![GitHub stars](https://img.shields.io/github/stars/morningddy/WXBookMaker?style=social)](https://github.com/morningddy/WXBookMaker)
+[![GitHub forks](https://img.shields.io/github/forks/morningddy/WXBookMaker?style=social)](https://github.com/morningddy/WXBookMaker)
+[![Python](https://img.shields.io/badge/Python-3.8+-green.svg)](https://www.python.org/)
 
 > 将扫描版 PDF、TXT、Markdown 等文档转换为微信读书兼容的 EPUB 电子书
+
+🔗 **GitHub 仓库**: https://github.com/morningddy/WXBookMaker
 
 ## ✨ 功能特性
 
@@ -29,8 +35,8 @@
 
 1. **克隆仓库**
 ```bash
-git clone https://github.com/morningddy/WX读书.git
-cd WX读书
+git clone https://github.com/morningddy/WXBookMaker.git
+cd WXBookMaker
 ```
 
 2. **安装 Python 依赖**
