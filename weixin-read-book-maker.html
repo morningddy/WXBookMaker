@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档转微信读书电子书</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-input: #16213e;
+            --bg-hover: #1c2541;
+            --border: #2d3a5a;
+            --text-primary: #e8eaf6;
+            --text-secondary: #9fa8da;
+            --accent: #7c4dff;
+            --accent2: #ff4081;
+            --success: #69f0ae;
+            --warning: #ffd740;
+            --error: #ff5252;
+            --info: #40c4ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 0 60px rgba(124,77,255,0.15), 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .header {
+            background: linear-gradient(135deg, var(--accent) 0%, #6c63ff 50%, var(--accent2) 100%);
+            color: white;
+            padding: 32px 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 8px; font-weight:700; letter-spacing:1px; }
+        .header p { opacity: 0.9; font-size: 14px; margin-top:4px; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 24px; }
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, var(--accent), var(--accent2));
+            border-radius: 2px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input[type="text"]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,77,255,0.15); }
+        input[type="text"]::placeholder { color:var(--text-secondary); opacity:0.6; }
+        textarea {
+            width: 100%;
+            min-height: 320px;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.85;
+            resize: vertical;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            transition: all 0.3s;
+        }
+        textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,77,255,0.15); }
+        textarea::placeholder { color:var(--text-secondary); opacity:0.6; }
+        .btn {
+            padding: 12px 26px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #6c63ff 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(124,77,255,0.35);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124,77,255,0.5);
+        }
+        .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform:none; box-shadow:none; }
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover:not(:disabled) { background:#252b48; color: var(--text-primary); }
+        .btn-ocr {
+            background: linear-gradient(135deg, var(--accent2) 0%, #ff1744 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,64,129,0.35);
+        }
+        .btn-ocr:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,64,129,0.5);
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .tips {
+            background: rgba(124,77,255,0.08);
+            border-left: 4px solid var(--accent);
+            padding: 18px 20px;
+            border-radius: 8px;
+            margin-top: 22px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+        }
+        .tips strong { color: var(--info); }
+        .file-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 44px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(124,77,255,0.03);
+        }
+        .file-upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(124,77,255,0.08);
+        }
+        .file-upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(124,77,255,0.12);
+            transform: scale(1.01);
+        }
+        .file-upload-icon { font-size: 52px; margin-bottom: 12px; opacity: 0.9; }
+        .file-upload-area > div:nth-child(2) { color: var(--text-secondary); font-size: 15px; }
+        .file-upload-area > div:nth-child(3) { color: var(--text-secondary); font-size: 12px; margin-top: 8px; opacity:0.55; }
+        .file-name { 
+            margin-top:12px; 
+            color: var(--info); 
+            font-weight:600; 
+            font-size:14px; 
+            padding: 8px 14px;
+            background:rgba(64,196,255,0.06);
+            border-radius:8px;
+            display:inline-block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 16px;
+            display: none;
+        }
+        .progress-bar.active { display:block; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 3px;
+        }
+        .ocr-progress {
+            width: 100%;
+            height: 10px;
+            background: var(--bg-hover);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+        .ocr-progress.active { display:block; }
+        .ocr-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent2), #ff1744);
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 5px;
+        }
+        .status-message {
+            margin-top: 16px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            line-height: 1.65;
+        }
+        .status-message.success { background: rgba(105,240,174,0.1); color: var(--success); border: 1px solid rgba(105,240,174,0.2); display: block; }
+        .status-message.error { background: rgba(255,82,82,0.1); color: var(--error); border: 1px solid rgba(255,82,82,0.2); display: block; }
+        .status-message.warning { background: rgba(255,215,64,0.1); color: var(--warning); border: 1px solid rgba(255,215,64,0.2); display: block; }
+        .status-message.info { background: rgba(64,196,255,0.1); color: var(--info); border: 1px solid rgba(64,196,255,0.2); display: block; }
+        .preview-area {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.85;
+            display: none;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .preview-area.active { display: block; }
+        .preview-area::-webkit-scrollbar { width:6px; }
+        .preview-area::-webkit-scrollbar-track { background:transparent; }
+        .preview-area::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+        .stat-bar {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+        }
+        .stat-item strong { color: var(--accent); }
+        
+        .ocr-panel {
+            background: linear-gradient(135deg, rgba(255,64,129,0.08), rgba(255,23,68,0.04));
+            border: 1px solid rgba(255,64,129,0.2);
+            border-left: 4px solid var(--accent2);
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.75;
+            display: none;
+        }
+        .ocr-panel.active { display:block; animation: fadeIn 0.3s ease; }
+        .ocr-panel strong { color: var(--accent2); }
+        
+        @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+        
+        textarea::-webkit-scrollbar { width:8px; }
+        textarea::-webkit-scrollbar-track { background:var(--bg-input); }
+        textarea::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+        
+        .ocr-highlight {
+            animation: pulse 1.5s infinite;
+            position: relative;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,64,129,0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(255,64,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,64,129,0); }
+        }
+
+        /* 服务状态指示器 */
+        .server-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+        .server-status.online { background: rgba(105,240,174,0.1); color: var(--success); }
+        .server-status.offline { background: rgba(255,82,82,0.1); color: var(--error); }
+        .server-dot { width: 8px; height: 8px; border-radius: 50%; display:inline-block; }
+        .server-dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .server-dot.offline { background: var(--error); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 文档 → 微信读书电子书</h1>
+            <p>TXT / Markdown / PDF 转 EPUB · 支持扫描版 PDF (Python后端OCR)</p>
+        </div>
+
+        <div class="content">
+            <!-- 书名 -->
+            <div class="section">
+                <div class="section-title">📖 书籍信息</div>
+                <input type="text" id="bookTitle" placeholder="输入书名（必填）" style="margin-bottom: 10px;">
+                <input type="text" id="bookAuthor" placeholder="输入作者（选填）">
+            </div>
+
+            <!-- 上传 -->
+            <div class="section">
+                <div class="section-title">📄 上传文件 <span id="serverStatus" class="server-status offline"><span class="server-dot offline"></span>检测服务...</span></div>
+                <div class="file-upload-area" id="uploadArea">
+                    <div class="file-upload-icon">📁</div>
+                    <div>点击或拖拽文件到此处</div>
+                    <div>支持 .txt / .md / .pdf （扫描版 PDF 自动 OCR 识别）</div>
+                    <input type="file" id="fileInput" accept=".txt,.md,.pdf" style="display: none;">
+                </div>
+                <div class="file-name" id="fileName"></div>
+                <div class="stat-bar" id="statBar" style="display: none;"></div>
+                
+                <!-- OCR 面板 -->
+                <div class="ocr-panel" id="ocrPanel"></div>
+                <div class="ocr-progress" id="ocrProgress"><div class="ocr-progress-fill" id="ocrProgressFill"></div></div>
+            </div>
+
+            <!-- 内容 -->
+            <div class="section">
+                <div class="section-title">✍️ 文字内容（可编辑修正）</div>
+                <textarea id="contentInput" placeholder="上传文件后内容会自动显示在这里
+
+你可以：
+• 直接编辑和修正识别结果
+• 手动粘贴其他文字内容
+• 然后点击「转换为 EPUB」导出"></textarea>
+                
+                <div class="preview-area" id="previewArea"></div>
+            </div>
+
+            <!-- 按钮 -->
+            <div class="button-group">
+                <button class="btn btn-primary" id="convertBtn" onclick="convertToEpub()">
+                    🔄 转换为 EPUB
+                </button>
+                <button class="btn btn-ocr ocr-highlight" id="ocrBtn" onclick="startOcr()" style="display:none;">
+                    🔍 OCR 识别文字
+                </button>
+                <button class="btn btn-secondary" onclick="clearAll()">
+                    🗑️ 清空重置
+                </button>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+            <!-- 状态消息 -->
+            <div class="status-message" id="statusMessage"></div>
+
+            <!-- 使用提示 -->
+            <div class="tips">
+                <strong>📌 使用步骤：</strong><br>
+                ① 填写书名 → ② 上传 PDF/TXT/MD 文件 → ③ 检查/编辑文字内容 → ④ 点「转换为 EPUB」→ ⑤ 导入微信读书<br><br>
+                
+                <strong>🔧 技术说明：</strong><br>
+                • 本工具使用 **Python 后端 + Tesseract OCR** 进行文字识别<br>
+                • 扫描版 PDF 会自动检测并使用 **本地 Tesseract v5** 进行中文+英文混合识别<br>
+                • 所有处理在本地完成，无需联网，保护隐私<br><br>
+                
+                <strong>💡 微信读书导入：</strong><br>
+                手机 App → 书架 → 右上角 + 号 → 导入本地书籍 → 选 EPUB 文件
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== 配置 ======
+        const API_BASE = window.location.origin;
+
+        // ====== 状态变量 ======
+        let currentFile = null;
+        let currentPdfData = null;
+
+        function log(msg) { console.log(`[${new Date().toLocaleTimeString()}] ${msg}`); }
+
+        // ====== 服务状态检测 ======
+        async function checkServer() {
+            const el = document.getElementById('serverStatus');
+            try {
+                const r = await fetch(API_BASE + '/api/extract', {method:'POST'});
+                // 如果返回错误（非网络错误），说明服务在线
+                el.className = 'server-status online';
+                el.innerHTML = '<span class="server-dot online"></span>服务已连接';
+                return true;
+            } catch(e) {
+                el.className = 'server-status offline';
+                el.innerHTML = '<span class="server-dot offline"></span>服务未启动';
+                return false;
+            }
+        }
+
+        // 页面加载时检测
+        checkServer();
+        setInterval(checkServer, 30000);
+
+        // ====== 文件上传 ======
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault(); uploadArea.classList.remove('drag-over');
+            handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        async function handleFile(file) {
+            if (!file) return;
+            
+            // 检查服务是否在线
+            if (!(await checkServer())) {
+                showStatus('❌ 后端服务未启动！请先运行 python server.py 启动服务器','error');
+                return;
+            }
+
+            log(`处理: ${file.name} (${formatSize(file.size)})`);
+            document.getElementById('fileName').textContent = `📄 ${file.name}`;
+            
+            if (!document.getElementById('bookTitle').value) {
+                document.getElementById('bookTitle').value = file.name.replace(/\.[^/.]+$/, '');
+            }
+
+            hideOcr();
+            currentFile = file;
+
+            try {
+                showStatus(`⏳ 正在处理 ${file.name}...`, 'info');
+                
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const res = await fetch(API_BASE + '/api/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '处理失败');
+                }
+
+                setContent(data.text);
+
+                if (data.used_ocr) {
+                    showStatus(
+                        `✅ OCR 识别完成！\n` +
+                        `📄 ${data.pages} 页 · 📝 ${data.chars.toLocaleString()} 字符\n\n` +
+                        `内容已填入下方文本框，请检查并修正后导出 EPUB`,
+                        'success'
+                    );
+                    
+                    const panel = document.getElementById('ocrPanel');
+                    panel.className = 'ocr-panel active';
+                    panel.innerHTML = `<strong style="color:var(--success)">✅ OCR 识别完成！</strong><br>` +
+                        `共识别 <strong>${data.pages}</strong> 页 · <strong>${data.chars.toLocaleString()}</strong> 字符<br>` +
+                        `使用 Tesseract v5 中文+英文混合识别<br><br>` +
+                        `💡 请在下方文本框中检查并修正识别结果，然后点「转换为 EPUB」导出`;
+                } else {
+                    showStatus(
+                        `✅ 提取完成！\n` +
+                        `📄 ${data.pages} 页 · 📝 ${data.chars.toLocaleString()} 字符`,
+                        'success'
+                    );
+                }
+
+            } catch(err) {
+                showStatus(`❌ 处理失败: ${err.message}`, 'error');
+                log(err.message);
+            }
+        }
+
+        function setContent(c) {
+            document.getElementById('contentInput').value = c;
+            
+            const chars=c.length, lines=c.split('\n').filter(l=>l.trim()).length, words=c.replace(/\s+/g,'').length;
+            document.getElementById('statBar').style.display='flex';
+            document.getElementById('statBar').innerHTML =
+                `<span class="stat-item">字符 <strong>${chars.toLocaleString()}</strong></span>`+
+                `<span class="stat-item">行数 <strong>${lines}</strong></span>`+
+                `<span class="stat-item">去空字数 <strong>${words.toLocaleString()}</strong></span>`;
+            
+            updatePreview(c);
+            log(`内容: ${chars}字符 ${lines}行`);
+        }
+
+        function updatePreview(c) {
+            const p=document.getElementById('previewArea');
+            if(c&&c.length){p.classList.add('active');p.textContent=c.length>800?c.slice(0,800)+'\n...(更多)':c;}
+            else p.classList.remove('active');
+        }
+
+        // ====== OCR（备用：如果首次提取结果不好） ======
+        function showOcr(pages) {
+            const btn=document.getElementById('ocrBtn');
+            const panel=document.getElementById('ocrPanel');
+            btn.style.display='inline-flex';
+            panel.className='ocr-panel active';
+            panel.innerHTML=`<strong>⚠️ 内容可能不完整（${pages} 页）</strong><br><br>
+                首次提取的文字可能较少。点击下方按钮重新进行完整 OCR 识别。<br>
+                <ul style="margin:8px 0 0 18px;line-height:1.9;color:inherit;">
+                <li>使用本地 Tesseract v5 进行高质量中文+英文识别</li>
+                <li>PDF 会以 250 DPI 渲染为高清图片再识别</li>
+                <li>识别过程在本地完成，不会上传任何数据</li>
+                <li>预计时间：${pages} 页 ≈ ${Math.ceil(pages*2/10)}~${Math.ceil(pages*5/10)} 分钟</li>
+                </ul>`;
+        }
+
+        function hideOcr() {
+            document.getElementById('ocrBtn').style.display='none';
+            document.getElementById('ocrPanel').className='ocr-panel';
+            document.getElementById('ocrProgress').classList.remove('active');
+        }
+
+        async function startOcr() {
+            if(!currentFile) return showStatus('❌ 请先上传 PDF','error');
+
+            const btn=document.getElementById('ocrBtn'), op=document.getElementById('ocrProgress'),
+                  of=document.getElementById('ocrProgressFill'), panel=document.getElementById('ocrPanel');
+
+            btn.disabled=true; btn.textContent='⏳ OCR 中...'; btn.classList.remove('ocr-highlight');
+            op.classList.add('active'); of.style.width='0%';
+
+            try {
+                panel.innerHTML=`🔄 <strong>正在发送到后端进行 OCR...</strong>`;
+
+                // 重新调用后端API（会自动使用OCR模式）
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                
+                // 模拟进度
+                const progressInterval = setInterval(() => {
+                    const current = parseFloat(of.style.width) || 0;
+                    if(current < 90) of.style.width = Math.min(current + Math.random()*5, 95) + '%';
+                }, 500);
+
+                const res = await fetch(API_BASE + '/api/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                of.style.width='100%';
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'OCR失败');
+
+                setContent(data.text);
+                panel.innerHTML=`<strong style="color:var(--success)">✅ OCR 完成！</strong> 共识别 ${data.pages} 页 · ${data.chars.toLocaleString()} 字符<br>` +
+                    `请检查下方文本框中的内容，可手动修正错误后点「转换为 EPUB」`;
+                showStatus(`✅ OCR 识别完成！\n📄 ${data.pages} 页 · 📝 ${data.chars.toLocaleString()} 字符\n\n请检查并修正后导出`,'success');
+
+            } catch(err) {
+                panel.innerHTML=`❌ 失败: ${err.message}`;
+                showStatus(`❌ 失败: ${err.message}`,'error');
+                log(err.stack||err.message);
+            } finally {
+                btn.disabled=false; btn.textContent='🔍 OCR 识别文字';
+                setTimeout(()=>op.classList.remove('active'),2000);
+            }
+        }
+
+        // ====== 转换为 EPUB（调用后端） ======
+        async function convertToEpub(){
+            const title=document.getElementById('bookTitle').value.trim(),
+                  author=document.getElementById('bookAuthor').value.trim()||'未知作者',
+                  content=document.getElementById('contentInput').value.trim();
+
+            if(!title)return showStatus('❌ 请填写书名','error');
+            if(!content||content.length<10)return showStatus('❌ 内容太少','error');
+
+            if (!(await checkServer())) {
+                showStatus('❌ 后端服务未启动！请先运行 python server.py','error');
+                return;
+            }
+
+            const btn=document.getElementById('convertBtn'),
+                  pb=document.getElementById('progressBar'),
+                  pf=document.getElementById('progressFill');
+
+            btn.disabled=true; btn.textContent='⏳ 转换中...';
+            pb.classList.add('active'); pf.style.width='0%';
+
+            try{
+                // 动画进度
+                const interval = setInterval(() => {
+                    const w = parseFloat(pf.style.width)||0;
+                    if(w < 90) pf.style.width = Math.min(w + 3, 95) + '%';
+                }, 200);
+
+                const res = await fetch(API_BASE + '/api/to-epub', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({title, author, content})
+                });
+
+                clearInterval(interval);
+                pf.style.width='100%';
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({error:'未知错误'}));
+                    throw new Error(errData.error || `HTTP ${res.status}`);
+                }
+
+                // 下载文件
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title.replace(/[\\/:*?"<>|]/g,'_')}.epub`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showStatus(
+                    `✅ 转换成功！EPUB 已开始下载\n\n` +
+                    `📖 ${title}\n` +
+                    `👤 ${author}\n` +
+                    `📦 ${(blob.size/1024).toFixed(1)} KB\n\n` +
+                    `请在微信读书中导入此 EPUB 文件`,
+                    'success'
+                );
+
+            } catch(err){
+                console.error(err);
+                showStatus(`❌ 转换失败: ${err.message}`,'error');
+            }finally{
+                btn.disabled=false; btn.textContent='🔄 转换为 EPUB';
+                setTimeout(()=>pb.classList.remove('active'),1500);
+            }
+        }
+
+        function clearAll(){
+            document.getElementById('bookTitle').value='';
+            document.getElementById('bookAuthor').value='';
+            document.getElementById('contentInput').value='';
+            document.getElementById('fileName').textContent='';
+            document.getElementById('statBar').style.display='none';
+            document.getElementById('previewArea').classList.remove('active');
+            document.getElementById('statusMessage').className='status-message';
+            hideOcr();
+            currentFile=null;currentPdfData=null;fileInput.value='';
+        }
+
+        function formatSize(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';}
+
+        function showStatus(msg,type){
+            const el=document.getElementById('statusMessage');
+            el.innerHTML=msg.replace(/\n/g,'<br>');
+            el.className=`status-message ${type}`;
+            if(type==='success')setTimeout(()=>el.className='status-message',9000);
+        }
+    </script>
+</body>
+</html>
